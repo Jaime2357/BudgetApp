@@ -6,22 +6,21 @@ const app = express();
 app.use(cors());
 
 const { default: JdbcDriver, ConnectionType } = require("node-jdbc-driver");
+const { get } = require('https');
 ConnectionType.postgreSql // for postgreSql connection
 
 const host = 'localhost'; // Change based on host
 const port = '5000'; // Change based on port
-const database = 'taanishq'; // Change based on dbName
-const username = 'taanishqsethi'; // Change based on username
-//const password = 'devpass';
+const database = 'jaime'; // Change based on dbName
+const username = 'jaime';
+const password = 'devpass';
 
 // Set optional parameters
 const minpoolsize = '0'
 const maxpoolsize = '500'
 
 const jdbcUrl = `jdbc:postgresql://${host}:${port}/${database}` // DB-URL
-const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username});
-
-var testval;
+const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username, password });
 
 // Create necessary tables 
 // (Note that Postgress uses SERIAL instead of AUTO_Increment)
@@ -104,7 +103,8 @@ async function newBalance(user_id, balance_name, balance_type, amount){
     ON CONFLICT (balance_name) DO NOTHING;`;
 
   try{
-    await jdbc.ddl(insertBalance);
+    const result = await jdbc.ddl(insertBalance);
+    return result;
   }
   catch(e){
     console.log("Error: ", e);
@@ -229,23 +229,123 @@ async function login(username, password){
   }
 }
 
+// Balance Getter and Parsers -----------------------------------------------------------------------
+// JDBC Returns a string of the results, so we need functions to parse
+
+function parseBalanceRow(rowString) {
+  // Remove the outer parentheses and split by comma
+  const values = rowString.slice(1, -1).split(',');
+
+  // Create a structured object
+  return {
+    balance_id: parseInt(values[0], 10),
+    balance_name: values[1].replace(/'/g, '').trim(), // Remove quotes if present
+    balance_type: values[2].replace(/'/g, '').trim(),
+    amount: parseFloat(values[3])
+  };
+}
+
+// Function to parse all rows -----------------------------
+function parseBalanceResult(jdbcResult) {
+  return jdbcResult.map(item => parseBalanceRow(item.row));
+}
+
+//Parsers ----------------------------------------------
+async function getBalances(user_id){ 
+
+  const grabBalances = `
+    SELECT (
+      balance_id, 
+      balance_name,
+      balance_type,
+      amount)
+    FROM Balances
+    WHERE user_id = '${user_id}';
+  `;
+
+  try{
+    const result = await jdbc.sql(grabBalances);
+    if(result.length === 0){
+      return [];
+    }
+    else{
+
+      const parsedMap = parseBalanceResult(result)
+      return parsedMap;
+    }
+  }
+  catch(e){
+    console.log("Error: ", e);
+  }
+}
+
+async function getUserName(user_id){ 
+
+  const grabName = `
+    SELECT (username)
+    FROM Users
+    WHERE user_id = '${user_id}';
+  `;
+
+  try{
+    const result = await jdbc.sql(grabName);
+    return result;
+  }
+  catch(e){
+    console.log("Error: ", e);
+  }
+}
 
 
 
 
+//getter functions-------------------------------------
 
-
-//To test functions
-app.get('/api/variable', async (req, res) => {
-  await deleteUser(2);
-  res.json({value: 0});
+app.get('/api/getBalances', async (req, res) => {
+  const user_id = req.query.user_id[0];
+  const balanceArray = await getBalances(user_id);
+  res.json(balanceArray);
 });
 
-(async () => {
-  try {
-    await createTables(); // Ensure tables are created before starting the server
-    app.listen(3001, () => console.log('Server running on port 3001'));
-  } catch (error) {
-    console.error("Error initializing the database:", error);
+app.get('/api/getNames', async (req, res) => {
+  const user_id = req.query.user_id[0];
+  const name = await getUserName(user_id);
+  res.json(name);
+});
+
+//setter functions ------------------------------------
+
+app.post('/api/createTables', async (req, res) => {
+  await createTables();
+  res.sendStatus(204);
+})
+
+app.post('/api/insertBalance', async (req, res) => {
+  const user_id = req.query.user_id;
+  const balance_name = req.query.balance_name;
+  const balance_type = req.query.balance_type;
+  const amount = req.query.amount;
+
+  try{
+    const insertCode = await newBalance(user_id, balance_name, balance_type, amount);
+    console.log("Insert Code:", insertCode);
+    if(insertCode === 1){
+      res.sendStatus(204);
+    }
+    else{
+      res.sendStatus(201);
+    }
   }
-})();
+  catch(error){
+    res.status(500).json({ message: 'Internal server error' });
+  }
+})
+
+app.post('/api/deleteTable', async (req, res) => {
+  const balance_id = req.query.balance_id;
+  console.log(balance_id);
+  await deleteBalance(balance_id);
+  res.sendStatus(204);
+})
+
+app.listen(3001, () => console.log('Server running on port 3001'));

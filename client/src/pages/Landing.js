@@ -1,11 +1,12 @@
 import { React, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from "axios";
 
 
 const Landing = () => {
 
-    const username = useState("Jaime"); //For testing purposes, username will come from login
-    const user_id = useState("1"); // Again, for testing, will be assigned after login and persist through app with cookies
+    const [username, setName] = useState(null); //For testing purposes, username will come from login
+    const user_id = useState(9); // Again, for testing, will be assigned after login and persist through app with cookies
     const [balances, setBalances] = useState([]);
     const [displayIndex, setDisplay] = useState(14);
 
@@ -25,14 +26,26 @@ const Landing = () => {
         setDisplay(selection);
     };
 
-    const pageNav = (selection) => {
-        setTransactionsOpen(!transactionsOpen);
-    };
-
     useEffect(() => {
-        console.log("reached");
+        const getName = async () => {
+            try {
+                const nameresp = await axios.get('/api/getNames', {
+                    params: {
+                        user_id: user_id
+                    }
+                });
+                console.log("Names - 1: ", nameresp.data);
+                setName(nameresp.data[0].username);
+            }
+            catch (e) {
+                console.log("Error: ", e);
+            }
+        }
         const getBalances = async () => {
             try {
+                await axios.post('/api/createTables');
+                console.log("Reached");
+
                 const response = await axios.get('/api/getBalances', {
                     params: {
                         user_id: user_id
@@ -48,6 +61,7 @@ const Landing = () => {
         };
 
         // Call the async function
+        getName();
         getBalances();
     }, []);
 
@@ -62,6 +76,9 @@ const Landing = () => {
                             <button className='dropdown-button' onClick={toggleBalanceList}>
                                 Select Balance
                             </button>
+                            <Link to={'/balancemanager'}>
+                                Manage Balances
+                            </Link>
                             {balancesOpen && (
                                 <ul className='menu-list'>
                                     {balances.map((balance, index) => (
@@ -99,7 +116,7 @@ const Landing = () => {
                             <button> Credit Payment </button>
                             {/* <button onClick={() => pageNav()}> */}
                             <button> Transfer </button>
-                            =                        </ul>
+                        </ul>
                     )}
                 </div>
             </div>

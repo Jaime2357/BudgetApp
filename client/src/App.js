@@ -13,6 +13,7 @@ import BalanceManager from "./pages/BalanceManager";
 import NewTransaction from "./pages/NewTransaction";
 import TransactionUpdater from "./pages/TransactionUpdater";
 import TransactionManager from "./pages/TransactionManager"
+import NewBalance from "./pages/NewBalance";
 
 
 axios.defaults.baseURL = 'http://127.0.0.1:3001';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/newtransaction" element={<NewTransaction />} />
             <Route path="/transactionupdate" element={<TransactionUpdater />} />
             <Route path="/transactionmanager" element={<TransactionManager />} />
+            <Route path="/newbalance" element={<NewBalance />} />
           </Route>
         </Routes>
       </MyContext.Provider>
@@ -40,3 +42,4 @@ function App() {
 }
 
 export default App;
+
