@@ -9,6 +9,7 @@
     "concurrently": "^9.1.0"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "cors": "^2.8.5",
     "glob": "^11.0.0",
     "node": "^18.20.5",
