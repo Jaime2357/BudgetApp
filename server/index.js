@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const bcrypt = require('bcrypt');
 
 // Enable CORS for all routes
 app.use(cors());
@@ -24,14 +25,14 @@ const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username, pass
 
 // Create necessary tables 
 // (Note that Postgress uses SERIAL instead of AUTO_Increment)
-async function createTables() { 
+async function createTables() {
   const createUsers = `
     CREATE TABLE IF NOT EXISTS Users (
       user_id SERIAL PRIMARY KEY,
-      password VARCHAR(25) NOT NULL,
+      password VARCHAR(100) NOT NULL,
       username VARCHAR(25) NOT NULL UNIQUE
     );`;
-  
+
   const createBalances = `
     CREATE TABLE IF NOT EXISTS Balances (
       balance_id SERIAL PRIMARY KEY,
@@ -62,31 +63,33 @@ async function createTables() {
     await jdbc.ddl(createUsers);
     await jdbc.ddl(createBalances);
     await jdbc.ddl(createTransactions);
-  } catch(e) {
+  } catch (e) {
     console.log("Error:", e);
   }
 }
 
 // Functions to add rows
-async function newUser(username, password){ //Add hashing later
+async function newUser(username, password) {
+
+  const hashedPass = await bcrypt.hash(password, 10);
 
   const insertUser = `
     INSERT INTO 
       Users (username, password)
     VALUES (
-      '${username}', '${password}'
+      '${username}', '${hashedPass}'
     )
     ON CONFLICT (username) DO NOTHING;`;
 
-  try{
+  try {
     await jdbc.ddl(insertUser);
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
 
-async function newBalance(user_id, balance_name, balance_type, amount){
+async function newBalance(user_id, balance_name, balance_type, amount) {
 
   const insertBalance = `
     INSERT INTO Balances (
@@ -102,16 +105,16 @@ async function newBalance(user_id, balance_name, balance_type, amount){
     )
     ON CONFLICT (balance_name) DO NOTHING;`;
 
-  try{
+  try {
     const result = await jdbc.ddl(insertBalance);
     return result;
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
 
-async function newTransaction(user_id, balance_id, transaction_name, transaction_type, amount){
+async function newTransaction(user_id, balance_id, transaction_name, transaction_type, amount) {
 
   const insertTransaction = `
     INSERT INTO Transactions (
@@ -129,31 +132,31 @@ async function newTransaction(user_id, balance_id, transaction_name, transaction
     )
     ON CONFLICT (transaction_name) DO NOTHING;`;
 
-  try{
+  try {
     await jdbc.ddl(insertTransaction);
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
 
 // Functions to Delete Rows
-async function deleteTransaction(transaction_id){
+async function deleteTransaction(transaction_id) {
 
   const removeTransaction = `
     DELETE FROM Transactions 
     WHERE transaction_id = '${transaction_id}';
     `;
 
-  try{
+  try {
     await jdbc.ddl(removeTransaction);
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
 
-async function deleteBalance(balance_id){
+async function deleteBalance(balance_id) {
 
   const removeTransactions = `
     DELETE FROM Transactions
@@ -165,16 +168,16 @@ async function deleteBalance(balance_id){
     WHERE balance_id = '${balance_id}';
     `;
 
-  try{
+  try {
     await jdbc.ddl(removeTransactions);
     await jdbc.ddl(removeBalance);
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
 
-async function deleteUser(user_id){
+async function deleteUser(user_id) {
 
   const removeTransactions = `
     DELETE FROM Transactions
@@ -191,40 +194,71 @@ async function deleteUser(user_id){
     WHERE user_id = '${user_id}';
     `;
 
-  try{
+  try {
     await jdbc.ddl(removeTransactions);
     await jdbc.ddl(removeBalance);
     await jdbc.ddl(removeUsers);
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
 
 // Access Functions
 // Proper Login with hashing is for later
-async function login(username, password){ 
+async function login(username, password) {
 
-  const selectUser = `
-    SELECT user_id
+  const pullPass = `
+    SELECT password
     FROM Users
     WHERE (
       username = '${username}'
-      AND
-      password = '${password}'
     );
-  `
+  `;
 
-  try{
-    const result = await jdbc.sql(selectUser);
-    if(result.length == 0 || result.length > 1){
-      return null;
+  try {
+    const storedPass = await jdbc.sql(pullPass);
+    if (storedPass.length === 0 || storedPass.length > 1) {
+      return -2; //Username not found...
     }
-    else{
-      return result[0].user_id;
+    else {
+      const verify = await bcrypt.compare(password, storedPass[0].password);
+      if (verify) {
+        console.log("Verified: ", verify);
+        try {
+
+          const selectUser = `
+            SELECT user_id
+            FROM Users
+            WHERE (
+              username = '${username}'
+              AND
+              password = '${storedPass[0].password}'
+            );
+          `;
+
+          const result = await jdbc.sql(selectUser);
+          console.log("Stored Password: ", storedPass);
+          console.log("Hashed Search: ", result);
+          if (result.length == 0 || result.length > 1) {
+            return -2; //Username not found...
+          }
+          else {
+            return result[0].user_id;
+          }
+        }
+        catch (e) {
+          console.log("Error: ", e);
+        }
+      }
+      else {
+        console.log("Verified: ", verify);
+        return -1;
+      }
     }
+
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
@@ -251,7 +285,7 @@ function parseBalanceResult(jdbcResult) {
 }
 
 //Parsers ----------------------------------------------
-async function getBalances(user_id){ 
+async function getBalances(user_id) {
 
   const grabBalances = `
     SELECT (
@@ -263,23 +297,23 @@ async function getBalances(user_id){
     WHERE user_id = '${user_id}';
   `;
 
-  try{
+  try {
     const result = await jdbc.sql(grabBalances);
-    if(result.length === 0){
+    if (result.length === 0) {
       return [];
     }
-    else{
+    else {
 
       const parsedMap = parseBalanceResult(result)
       return parsedMap;
     }
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
 
-async function getUserName(user_id){ 
+async function getUserName(user_id) {
 
   const grabName = `
     SELECT (username)
@@ -287,11 +321,11 @@ async function getUserName(user_id){
     WHERE user_id = '${user_id}';
   `;
 
-  try{
+  try {
     const result = await jdbc.sql(grabName);
     return result;
   }
-  catch(e){
+  catch (e) {
     console.log("Error: ", e);
   }
 }
@@ -313,10 +347,22 @@ app.get('/api/getNames', async (req, res) => {
   res.json(name);
 });
 
+app.get('/api/login', async (req, res) => {
+  const ID = await login('Test', 'hashedpass'); //Testing
+  console.log(ID);
+  res.json(ID);
+});
+
 //setter functions ------------------------------------
 
 app.post('/api/createTables', async (req, res) => {
   await createTables();
+  res.sendStatus(204);
+})
+
+app.post('/api/setUser', async (req, res) => {
+  await newUser('Test', 'hashedpass'); //Testing for now
+  console.log("Signup Complete");
   res.sendStatus(204);
 })
 
@@ -326,17 +372,17 @@ app.post('/api/insertBalance', async (req, res) => {
   const balance_type = req.query.balance_type;
   const amount = req.query.amount;
 
-  try{
+  try {
     const insertCode = await newBalance(user_id, balance_name, balance_type, amount);
     console.log("Insert Code:", insertCode);
-    if(insertCode === 1){
+    if (insertCode === 1) {
       res.sendStatus(204);
     }
-    else{
+    else {
       res.sendStatus(201);
     }
   }
-  catch(error){
+  catch (error) {
     res.status(500).json({ message: 'Internal server error' });
   }
 })

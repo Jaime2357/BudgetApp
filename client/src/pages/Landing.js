@@ -27,6 +27,15 @@ const Landing = () => {
     };
 
     useEffect(() => {
+        const login = async () => { //testing only
+            try {
+                const ID = await axios.get('/api/login');
+                console.log("Login Test:", ID);
+            }
+            catch (e) {
+                console.log("Error: ", e);
+            }
+        }
         const getName = async () => {
             try {
                 const nameresp = await axios.get('/api/getNames', {
@@ -61,6 +70,7 @@ const Landing = () => {
         };
 
         // Call the async function
+        login();
         getName();
         getBalances();
     }, []);
