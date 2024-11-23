@@ -10,16 +10,16 @@ ConnectionType.postgreSql // for postgreSql connection
 
 const host = 'localhost'; // Change based on host
 const port = '5000'; // Change based on port
-const database = 'jaime'; // Change based on dbName
-const username = 'jaime';
-const password = 'devpass';
+const database = 'taanishq'; // Change based on dbName
+const username = 'taanishqsethi'; // Change based on username
+//const password = 'devpass';
 
 // Set optional parameters
 const minpoolsize = '0'
 const maxpoolsize = '500'
 
 const jdbcUrl = `jdbc:postgresql://${host}:${port}/${database}` // DB-URL
-const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username, password });
+const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username});
 
 var testval;
 
@@ -241,4 +241,11 @@ app.get('/api/variable', async (req, res) => {
   res.json({value: 0});
 });
 
-app.listen(3001, () => console.log('Server running on port 3001'));
+(async () => {
+  try {
+    await createTables(); // Ensure tables are created before starting the server
+    app.listen(3001, () => console.log('Server running on port 3001'));
+  } catch (error) {
+    console.error("Error initializing the database:", error);
+  }
+})();
