@@ -7,7 +7,7 @@ import './App.css';
 import MyContext from "./MyContext";
 import Layout from "./pages/Layout";
 import Landing from "./pages/Landing";
-import Login from "./page/Login";
+import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import BalanceManager from "./pages/BalanceManager";
 import NewTransaction from "./pages/NewTransaction";

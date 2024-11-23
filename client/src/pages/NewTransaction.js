@@ -6,5 +6,7 @@ import { React, useEffect, useState } from 'react';
 import axios from "axios";
 
 const NewTransaction = () => {
-    
+
 }
+
+export default NewTransaction;
