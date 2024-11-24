@@ -4,7 +4,7 @@ import axios from "axios";
 import './App.css';
 
 
-import MyContext from "./MyContext";
+import {MyContextProvider} from "./MyContext";
 import Layout from "./pages/Layout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -23,7 +23,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <MyContext.Provider>
+      <MyContextProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Landing />} />
@@ -31,12 +31,12 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/balancemanager" element={<BalanceManager />} />
             <Route path="/newtransaction" element={<NewTransaction />} />
-            <Route path="/transactionupdate" element={<TransactionUpdater />} />
-            <Route path="/transactionmanager" element={<TransactionManager />} />
+            {/* <Route path="/transactionupdate" element={<TransactionUpdater />} /> */}
+            {/* <Route path="/transactionmanager" element={<TransactionManager />} /> */}
             <Route path="/newbalance" element={<NewBalance />} />
           </Route>
         </Routes>
-      </MyContext.Provider>
+      </MyContextProvider>
     </BrowserRouter>
   );
 }

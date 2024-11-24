@@ -1,16 +1,18 @@
-import { React, useEffect, useState } from 'react';
-import {Link } from 'react-router-dom';
+import { React, useContext, useEffect, useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import { MyContext } from '../MyContext';
 import axios from "axios";
 
 
 const BalanceManager = () => {
 
-    const user_id = useState(1); // Again, for testing, will be assigned after login and persist through app with cookies
     const [balances, setBalances] = useState([]);
     const [updated, setUpdated] = useState(true);
 
+    const {user_id, setUserID, validated, setValidated} = useContext(MyContext);
+
     const deleteBalance = async (selected) => {
-        try{
+        try {
             await axios.post('api/deleteTable', null, {
                 params: {
                     balance_id: selected
@@ -19,7 +21,7 @@ const BalanceManager = () => {
             console.log('Table Successfully Deleted');
             setUpdated(true);
         }
-        catch(e){
+        catch (e) {
             console.log("Error: ", e);
         }
     }
@@ -43,25 +45,33 @@ const BalanceManager = () => {
         getBalances();
     }, [updated]);
 
-    // if (displayIndex != null) {
-        return (
+    const logout = () => {
+        setUserID(null);
+        setValidated(false);
+    }
 
-            <div>
-                <h1> List of Balances </h1>
-                <ul className='menu-list'>
-                    {balances.map((balance) => (
-                        <li> 
-                            <h1> ({balance.balance_id}) {balance.balance_name} - {balance.balance_type} </h1> 
-                            <h2> ${balance.amount} </h2>
-                            <button onClick={() => deleteBalance(balance.balance_id)}> Delete </button>
-                        </li>
-                    ))}
-                </ul>
-                <Link to={'/newbalance'}> New Balance </Link>
-                <Link to={'/'}> Return </Link>
-            </div>
-        );
-    // }
+    if (!validated) {
+        return <Navigate to={'/login'} />
+    }
+    return (
+
+        <div>
+            <h1> List of Balances </h1>
+            <ul className='menu-list'>
+                {balances.map((balance) => (
+                    <li>
+                        <h1> ({balance.balance_id}) {balance.balance_name} - {balance.balance_type} </h1>
+                        <h2> ${balance.amount} </h2>
+                        <button onClick={() => deleteBalance(balance.balance_id)}> Delete </button>
+                    </li>
+                ))}
+            </ul>
+            <Link to={'/newbalance'}> New Balance </Link>
+            <Link to={'/'}> Return </Link>
+            <button onClick={logout}> Logout </button>
+        </div>
+    );
+
 };
 
 export default BalanceManager;

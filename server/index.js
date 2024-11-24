@@ -77,12 +77,13 @@ async function newUser(username, password) {
     INSERT INTO 
       Users (username, password)
     VALUES (
-      '${username}', '${hashedPass}'
+      $$${username}$$, $$${hashedPass}$$
     )
     ON CONFLICT (username) DO NOTHING;`;
 
   try {
-    await jdbc.ddl(insertUser);
+    const result = await jdbc.ddl(insertUser);
+    return result;
   }
   catch (e) {
     console.log("Error: ", e);
@@ -98,10 +99,10 @@ async function newBalance(user_id, balance_name, balance_type, amount) {
       balance_type, 
       amount
     ) VALUES (
-      '${user_id}', 
-      '${balance_name}', 
-      '${balance_type}', 
-      '${amount}'
+      $$${user_id}$$, 
+      $$${balance_name}$$, 
+      $$${balance_type}$$, 
+      $$${amount}$$
     )
     ON CONFLICT (balance_name) DO NOTHING;`;
 
@@ -124,11 +125,11 @@ async function newTransaction(user_id, balance_id, transaction_name, transaction
       transaction_type, 
       amount
     ) VALUES (
-      '${balance_id}', 
-      '${user_id}',
-      '${transaction_name}', 
-      '${transaction_type}', 
-      '${amount}'
+      $$${balance_id}$$, 
+      $$${user_id}$$,
+      $$${transaction_name}$$, 
+      $$${transaction_type}$$, 
+      $$${amount}$$
     )
     ON CONFLICT (transaction_name) DO NOTHING;`;
 
@@ -145,7 +146,7 @@ async function deleteTransaction(transaction_id) {
 
   const removeTransaction = `
     DELETE FROM Transactions 
-    WHERE transaction_id = '${transaction_id}';
+    WHERE transaction_id = $$${transaction_id}$$;
     `;
 
   try {
@@ -160,12 +161,12 @@ async function deleteBalance(balance_id) {
 
   const removeTransactions = `
     DELETE FROM Transactions
-    WHERE balance_id = '${balance_id}';
+    WHERE balance_id = $$${balance_id}$$;
     `;
 
   const removeBalance = `
     DELETE FROM Balances 
-    WHERE balance_id = '${balance_id}';
+    WHERE balance_id = $$${balance_id}$$;
     `;
 
   try {
@@ -181,17 +182,17 @@ async function deleteUser(user_id) {
 
   const removeTransactions = `
     DELETE FROM Transactions
-    WHERE user_id = '${user_id}';
+    WHERE user_id = $$${user_id}$$;
     `;
 
   const removeBalance = `
     DELETE FROM Balances 
-    WHERE user_id = '${user_id}';
+    WHERE user_id = $$${user_id}$$;
     `;
 
   const removeUsers = `
     DELETE FROM Users 
-    WHERE user_id = '${user_id}';
+    WHERE user_id = $$${user_id}$$;
     `;
 
   try {
@@ -212,7 +213,7 @@ async function login(username, password) {
     SELECT password
     FROM Users
     WHERE (
-      username = '${username}'
+      username = $$${username}$$
     );
   `;
 
@@ -231,9 +232,9 @@ async function login(username, password) {
             SELECT user_id
             FROM Users
             WHERE (
-              username = '${username}'
+              username = $$${username}$$
               AND
-              password = '${storedPass[0].password}'
+              password = $$${storedPass[0].password}$$
             );
           `;
 
@@ -294,7 +295,7 @@ async function getBalances(user_id) {
       balance_type,
       amount)
     FROM Balances
-    WHERE user_id = '${user_id}';
+    WHERE user_id = $$${user_id}$$;
   `;
 
   try {
@@ -318,7 +319,7 @@ async function getUserName(user_id) {
   const grabName = `
     SELECT (username)
     FROM Users
-    WHERE user_id = '${user_id}';
+    WHERE user_id = $$${user_id}$$;
   `;
 
   try {
@@ -336,19 +337,22 @@ async function getUserName(user_id) {
 //getter functions-------------------------------------
 
 app.get('/api/getBalances', async (req, res) => {
-  const user_id = req.query.user_id[0];
+  const user_id = req.query.user_id;
   const balanceArray = await getBalances(user_id);
   res.json(balanceArray);
 });
 
 app.get('/api/getNames', async (req, res) => {
-  const user_id = req.query.user_id[0];
+  const user_id = req.query.user_id;
   const name = await getUserName(user_id);
   res.json(name);
 });
 
 app.get('/api/login', async (req, res) => {
-  const ID = await login('Test', 'hashedpass'); //Testing
+  const username = req.query.username;
+  const password = req.query.password;
+  console.log("Login Params: ", req.query);
+  const ID = await login(username, password);
   console.log(ID);
   res.json(ID);
 });
@@ -361,9 +365,23 @@ app.post('/api/createTables', async (req, res) => {
 })
 
 app.post('/api/setUser', async (req, res) => {
-  await newUser('Test', 'hashedpass'); //Testing for now
-  console.log("Signup Complete");
-  res.sendStatus(204);
+  const username = req.query.username;
+  const password = req.query.password;
+  console.log("Parameters:",username,", ",password);
+  try{
+    const insertCode = await newUser(username, password);
+    console.log("Insert Code:", insertCode);
+    if (insertCode === 1) {
+      console.log("Signup Complete");
+      res.sendStatus(204);
+    }
+    else {
+      res.sendStatus(201); //Name is taken
+    }
+  }
+  catch(e){
+    console.log("Error: ", e);
+  }
 })
 
 app.post('/api/insertBalance', async (req, res) => {
