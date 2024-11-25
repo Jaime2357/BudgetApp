@@ -1,0 +1,101 @@
+:root {
+  --primary: #5a9fb2;
+  --background: #1a1a1a;
+  --text: #f0f0f0;
+  --error: #ff6b6b;
+}
+
+.container {
+  text-align: center;
+  padding: 20px;
+  color: var(--text);
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 3.5rem;
+  color: var(--primary);
+  margin: 40px 0;
+}
+
+.formBox {
+  width: 350px;
+  margin: 20px auto;
+  padding: 30px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--background);
+}
+
+.formBox h2 {
+  color: var(--primary);
+  font-size: 1.5rem;
+  text-align: left;
+  margin: 15px 0 10px;
+}
+
+.input {
+  width: calc(100% - 24px);
+  padding: 12px;
+  background: var(--background);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.toggleButton {
+  width: auto;
+  padding: 8px 12px;
+  background: none;
+  color: var(--primary);
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin: 5px 0;
+  text-align: left;
+}
+
+.toggleButton:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+.submitButton {
+  width: 40%;
+  padding: 12px;
+  background: var(--primary);
+  color: var(--text);
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin: 20px auto;
+  display: block;
+  font-weight: 600;
+}
+
+.errorMessage {
+  color: var(--error);
+  font-size: 0.9rem;
+  text-align: left;
+  margin: 5px 0;
+}
+
+.signupLink {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding: 12px 24px;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 20px;
+}
+
+.toggleButton:hover,
+.submitButton:hover,
+.signupLink:hover {
+  opacity: 0.9;
+}

@@ -73,11 +73,13 @@ async function newUser(username, password) {
 
   const hashedPass = await bcrypt.hash(password, 10);
 
+  const escapedUsername = username.replace(/'/g, "''");
+
   const insertUser = `
     INSERT INTO 
       Users (username, password)
     VALUES (
-      $$${username}$$, $$${hashedPass}$$
+      '${escapedUsername}', '${hashedPass}'
     )
     ON CONFLICT (username) DO NOTHING;`;
 
@@ -92,6 +94,8 @@ async function newUser(username, password) {
 
 async function newBalance(user_id, balance_name, balance_type, amount) {
 
+  const escapedBalanceName = balance_name.replace(/'/g, "''");
+
   const insertBalance = `
     INSERT INTO Balances (
       user_id, 
@@ -99,13 +103,12 @@ async function newBalance(user_id, balance_name, balance_type, amount) {
       balance_type, 
       amount
     ) VALUES (
-      $$${user_id}$$, 
-      $$${balance_name}$$, 
-      $$${balance_type}$$, 
-      $$${amount}$$
+      ${user_id}, 
+      '${escapedBalanceName}', 
+      '${balance_type}', 
+      ${amount}
     )
     ON CONFLICT (balance_name) DO NOTHING;`;
-
   try {
     const result = await jdbc.ddl(insertBalance);
     return result;
@@ -117,6 +120,8 @@ async function newBalance(user_id, balance_name, balance_type, amount) {
 
 async function newTransaction(user_id, balance_id, transaction_name, transaction_type, amount) {
 
+  const escapedTransactionName = transaction_name.replace(/'/g, "''");
+
   const insertTransaction = `
     INSERT INTO Transactions (
       balance_id, 
@@ -125,11 +130,11 @@ async function newTransaction(user_id, balance_id, transaction_name, transaction
       transaction_type, 
       amount
     ) VALUES (
-      $$${balance_id}$$, 
-      $$${user_id}$$,
-      $$${transaction_name}$$, 
-      $$${transaction_type}$$, 
-      $$${amount}$$
+      ${balance_id}, 
+      ${user_id},
+      '${escapedTransactionName}', 
+      '${transaction_type}', 
+      ${amount}
     )
     ON CONFLICT (transaction_name) DO NOTHING;`;
 
@@ -146,7 +151,7 @@ async function deleteTransaction(transaction_id) {
 
   const removeTransaction = `
     DELETE FROM Transactions 
-    WHERE transaction_id = $$${transaction_id}$$;
+    WHERE transaction_id = ${transaction_id};
     `;
 
   try {
@@ -161,12 +166,12 @@ async function deleteBalance(balance_id) {
 
   const removeTransactions = `
     DELETE FROM Transactions
-    WHERE balance_id = $$${balance_id}$$;
+    WHERE balance_id = ${balance_id};
     `;
 
   const removeBalance = `
     DELETE FROM Balances 
-    WHERE balance_id = $$${balance_id}$$;
+    WHERE balance_id = ${balance_id};
     `;
 
   try {
@@ -182,17 +187,17 @@ async function deleteUser(user_id) {
 
   const removeTransactions = `
     DELETE FROM Transactions
-    WHERE user_id = $$${user_id}$$;
+    WHERE user_id = ${user_id};
     `;
 
   const removeBalance = `
     DELETE FROM Balances 
-    WHERE user_id = $$${user_id}$$;
+    WHERE user_id = ${user_id};
     `;
 
   const removeUsers = `
     DELETE FROM Users 
-    WHERE user_id = $$${user_id}$$;
+    WHERE user_id = ${user_id};
     `;
 
   try {
@@ -209,11 +214,13 @@ async function deleteUser(user_id) {
 // Proper Login with hashing is for later
 async function login(username, password) {
 
+  const escapedUsername = username.replace(/'/g, "''");
+
   const pullPass = `
     SELECT password
     FROM Users
     WHERE (
-      username = $$${username}$$
+      username = '${escapedUsername}'
     );
   `;
 
@@ -232,7 +239,7 @@ async function login(username, password) {
             SELECT user_id
             FROM Users
             WHERE (
-              username = $$${username}$$
+              username = '${escapedUsername}'
               AND
               password = $$${storedPass[0].password}$$
             );
@@ -295,7 +302,7 @@ async function getBalances(user_id) {
       balance_type,
       amount)
     FROM Balances
-    WHERE user_id = $$${user_id}$$;
+    WHERE user_id = ${user_id};
   `;
 
   try {
@@ -319,7 +326,7 @@ async function getUserName(user_id) {
   const grabName = `
     SELECT (username)
     FROM Users
-    WHERE user_id = $$${user_id}$$;
+    WHERE user_id = ${user_id};
   `;
 
   try {

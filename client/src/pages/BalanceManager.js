@@ -3,22 +3,18 @@ import { Link, Navigate } from 'react-router-dom';
 import { MyContext } from '../MyContext';
 import axios from "axios";
 
+import styles from '../pageStyling/BalanceManager.module.css';
 
 const BalanceManager = () => {
-
     const [balances, setBalances] = useState([]);
     const [updated, setUpdated] = useState(true);
-
-    const {user_id, setUserID, validated, setValidated} = useContext(MyContext);
+    const { user_id, setUserID, validated, setValidated } = useContext(MyContext);
 
     const deleteBalance = async (selected) => {
         try {
             await axios.post('api/deleteTable', null, {
-                params: {
-                    balance_id: selected
-                }
+                params: { balance_id: selected }
             });
-            console.log('Table Successfully Deleted');
             setUpdated(true);
         }
         catch (e) {
@@ -26,13 +22,15 @@ const BalanceManager = () => {
         }
     }
 
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    }
+
     useEffect(() => {
         const getBalances = async () => {
             try {
                 const response = await axios.get('/api/getBalances', {
-                    params: {
-                        user_id: user_id
-                    }
+                    params: { user_id: user_id }
                 });
                 setBalances(response.data);
                 setUpdated(false);
@@ -40,38 +38,42 @@ const BalanceManager = () => {
                 console.error('Error fetching data:', error);
             }
         };
-
-        // Call the async function
         getBalances();
     }, [updated]);
 
-    const logout = () => {
-        setUserID(null);
-        setValidated(false);
-    }
-
     if (!validated) {
-        return <Navigate to={'/login'} />
+        return <Navigate to={'/login'} />;
     }
-    return (
 
-        <div>
-            <h1> List of Balances </h1>
-            <ul className='menu-list'>
+    return (
+        <div className={styles.container}>
+            <h1 className={styles.title}>List of Balances</h1>
+            <div className={styles.balanceBox}>
                 {balances.map((balance) => (
-                    <li>
-                        <h1> ({balance.balance_id}) {balance.balance_name} - {balance.balance_type} </h1>
-                        <h2> ${balance.amount} </h2>
-                        <button onClick={() => deleteBalance(balance.balance_id)}> Delete </button>
-                    </li>
+                    <div key={balance.balance_id} className={styles.balanceItem}>
+                        <div className={styles.balanceInfo}>
+                            <h2>{balance.balance_name.replace(/^"|"$/g, '')}</h2>
+                            <h3>{balance.balance_type}: ${balance.amount}</h3>
+                        </div>
+                        <button
+                            className={styles.deleteButton}
+                            onClick={() => deleteBalance(balance.balance_id)}
+                        >
+                            Delete
+                        </button>
+                    </div>
                 ))}
-            </ul>
-            <Link to={'/newbalance'}> New Balance </Link>
-            <Link to={'/'}> Return </Link>
-            <button onClick={logout}> Logout </button>
+            </div>
+            <div className={styles.navigationButtons}>
+                <Link to={'/newbalance'} className={styles.buttonLink}>
+                    New Balance
+                </Link>
+                <Link to={'/'} className={styles.buttonLink}>
+                    Return
+                </Link>
+            </div>
         </div>
     );
-
 };
 
 export default BalanceManager;

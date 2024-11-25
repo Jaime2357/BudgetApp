@@ -1,0 +1,136 @@
+.container {
+  text-align: center;
+  padding: 20px;
+  color: #f0f0f0;
+  background-color: #1a1a1a;
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 3.5rem;
+  color: #5a9fb2;
+  margin: 40px 0;
+}
+
+.balanceBox {
+  position: relative;
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 2px solid #5a9fb2;
+  border-radius: 8px;
+  background: rgba(26, 26, 26, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+}
+
+.balanceHeader {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.dropdownButton {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropdownButton h1 {
+  font-size: 2.5rem;
+  color: #5a9fb2;
+  margin: 0;
+}
+
+.amount {
+  font-size: 3.5rem;
+  color: #f0f0f0;
+  margin: 15px 0 0 0;
+}
+
+.cornerMenu {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.menuList {
+  position: absolute;
+  bottom: 100%; /* Aligns the bottom of the dropdown with the top of the button */
+  right: 100%; /* Aligns the right side of the dropdown with the left side of the button */
+  background: #5a9fb2;
+  border-radius: 8px;
+  padding: 10px;
+  width: auto;
+  min-width: 200px;
+  z-index: 1000;
+}
+
+.menuList button {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: #f0f0f0;
+  font-size: 1.2rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuList button:hover {
+  background-color: #3d7c8a;
+}
+
+.buttonLink,
+.logoutButton {
+  display: inline-block;
+  width: 150px;
+  padding: 12px 24px;
+  background: #5a9fb2;
+  color: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  text-decoration: none;
+  cursor: pointer;
+  margin: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.buttonLink:hover,
+.logoutButton:hover {
+  background: #3d7c8a;
+}
+
+.cornerMenu {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.icon {
+  width: 70px;
+  height: 70px;
+  padding: 15px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.icon:hover {
+  transform: scale(1.1);
+}
+
+.selectIcon {
+  width: 12px;
+  height: 12px;
+  margin-left: 5px;
+}

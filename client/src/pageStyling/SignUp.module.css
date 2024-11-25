@@ -1,0 +1,89 @@
+:root {
+  --primary: #5a9fb2;
+  --background: #1a1a1a;
+  --text: #f0f0f0;
+  --error: #ff6b6b;
+}
+
+.container {
+  text-align: center;
+  padding: 20px;
+  color: var(--text);
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 3.5rem;
+  color: var(--primary);
+  margin: 40px 0;
+}
+
+.formBox {
+  width: 350px;
+  margin: 20px auto;
+  padding: 30px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--background);
+}
+
+.formBox h2 {
+  color: var(--primary);
+  font-size: 1.5rem;
+  text-align: left;
+  margin: 15px 0 10px;
+}
+
+.input {
+  width: calc(100% - 24px);
+  padding: 12px;
+  background: var(--background);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.errorMessage {
+  color: var(--error);
+  font-size: 0.9rem;
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.submitButton {
+  width: 40%;
+  padding: 12px;
+  background: var(--primary);
+  color: var(--text);
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin: 20px auto;
+  display: block;
+  font-weight: 600;
+}
+
+.loginLink {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding: 12px 24px;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 20px;
+}
+
+.submitButton:hover,
+.loginLink:hover {
+  opacity: 0.9;
+}

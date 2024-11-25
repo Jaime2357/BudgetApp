@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, {useState, useContext } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { MyContext } from '../MyContext';
 import axios from "axios";
+import styles from '../pageStyling/NewBalance.module.css';
 
 const NewBalance = () => {
     const [balance_name, setBalanceName] = useState("");
@@ -10,7 +11,6 @@ const NewBalance = () => {
     const [error, setError] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
     const [redirect, setRedirect] = useState(false);
-
     const {user_id, validated} = useContext(MyContext);
 
     const createBalance = async (e) => {
@@ -23,7 +23,7 @@ const NewBalance = () => {
         }
 
         try {
-            var response = await axios.post('api/insertBalance', null, {
+            const response = await axios.post('api/insertBalance', null, {
                 params: {
                     user_id,
                     balance_name,
@@ -31,9 +31,7 @@ const NewBalance = () => {
                     amount
                 }
             });
-            console.log(response);
             if (response.status === 204) {
-                console.log('Balance Successfully Added');
                 setRedirect(true);
             }
             if (response.status === 201) {
@@ -45,35 +43,14 @@ const NewBalance = () => {
         }
     };
 
-    const toggleList = (e) => {
-        e.preventDefault();
-        setIsOpen(!isOpen);
-    };
-
-    const selectorAction = (e, selection) => {
-        e.preventDefault();
-        setType(selection);
-        setIsOpen(false);
-    };
-
-    useEffect(() => {
-        console.log(error);
-    }, [error]);
-
-    if (redirect) {
-        return <Navigate to={'/balancemanager'} />;
-    }
-
-    if (!validated) {
-        return <Navigate to={'/login'} />
-    }
+    if (redirect) return <Navigate to='/balancemanager' />;
+    if (!validated) return <Navigate to='/login' />;
 
     return (
-        <div>
-            <form onSubmit={createBalance}>
-                <h1>New Balance</h1>
-
-                <h2 className="text-2xl mt-4 mb-2">Balance Name</h2>
+        <div className={styles.container}>
+            <h1 className={styles.title}>New Balance</h1>
+            <form onSubmit={createBalance} className={styles.newBalanceBox}>
+                <h2>Balance Name</h2>
                 <input
                     type="text"
                     value={balance_name}
@@ -82,9 +59,10 @@ const NewBalance = () => {
                     required
                     minLength="1"
                     maxLength="20"
+                    className={styles.input}
                 />
 
-                <h2 className="text-2xl mt-4 mb-2">Initial Balance</h2>
+                <h2>Initial Balance</h2>
                 <input
                     type="number"
                     value={amount}
@@ -92,26 +70,47 @@ const NewBalance = () => {
                     placeholder="0.00"
                     step="0.01"
                     maxLength="20"
+                    className={styles.input}
                 />
 
-                <div className='dropdown-menu'>
-                    <button type="button" className='dropdown-button' onClick={toggleList}>
-                        Account Type: {balance_type}
+                <div className={styles.dropdownMenu}>
+                    <button 
+                        type="button" 
+                        className={styles.dropdownButton} 
+                        onClick={() => setIsOpen(!isOpen)}
+                    >
+                        {balance_type}
                     </button>
                     {isOpen && (
-                        <ul className='menu-list'>
-                            <li><button type="button" onClick={(e) => selectorAction(e, 'wallet')}>Wallet</button></li>
-                            <li><button type="button" onClick={(e) => selectorAction(e, 'credit')}>Credit</button></li>
+                        <ul className={styles.menuList}>
+                            {['wallet', 'credit'].map((type) => (
+                                <p key={type}>
+                                    <button 
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setType(type);
+                                            setIsOpen(false);
+                                        }}
+                                    >
+                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                    </button>
+                                </p>
+                            ))}
                         </ul>
                     )}
                 </div>
 
-                {error && <div className="error-message">{error}</div>}
+                {error && <div className={styles.errorMessage}>{error}</div>}
 
-                <button type="submit">Create Balance</button>
+                <button type="submit" className={styles.submitButton}>
+                    Save
+                </button>
             </form>
 
-            <Link to={'/balancemanager'}> Return </Link>
+            <Link to='/balancemanager' className={styles.returnLink}>
+                Return
+            </Link>
         </div>
     );
 };

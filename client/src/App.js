@@ -1,8 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes , Route} from "react-router-dom";
 import axios from "axios";
-import './App.css';
-
 
 import {MyContextProvider} from "./MyContext";
 import Layout from "./pages/Layout";
