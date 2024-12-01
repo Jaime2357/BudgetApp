@@ -12,16 +12,16 @@ ConnectionType.postgreSql // for postgreSql connection
 
 const host = 'localhost'; // Change based on host
 const port = '5000'; // Change based on port
-const database = 'jaime'; // Change based on dbName
-const username = 'jaime';
-const password = 'devpass';
+const database = 'taanishq'; // Change based on dbName
+const username = 'taanishqsethi';
+//const password = 'devpass';
 
 // Set optional parameters
 const minpoolsize = '0'
 const maxpoolsize = '500'
 
 const jdbcUrl = `jdbc:postgresql://${host}:${port}/${database}` // DB-URL
-const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username, password });
+const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username});
 
 // Create necessary tables 
 // (Note that Postgress uses SERIAL instead of AUTO_Increment)
@@ -30,7 +30,7 @@ async function createTables() {
     CREATE TABLE IF NOT EXISTS Users (
       user_id SERIAL PRIMARY KEY,
       password VARCHAR(100) NOT NULL,
-      username VARCHAR(25) NOT NULL UNIQUE
+      username VARCHAR(50) NOT NULL UNIQUE
     );`;
 
   const createBalances = `
