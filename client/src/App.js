@@ -29,8 +29,8 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/balancemanager" element={<BalanceManager />} />
             <Route path="/newtransaction" element={<NewTransaction />} />
-            {/* <Route path="/transactionupdate" element={<TransactionUpdater />} /> */}
-            {/* <Route path="/transactionmanager" element={<TransactionManager />} /> */}
+            <Route path="/transactionupdate" element={<TransactionUpdater />} /> 
+            <Route path="/transactionmanager" element={<TransactionManager />} /> *
             <Route path="/newbalance" element={<NewBalance />} />
           </Route>
         </Routes>
