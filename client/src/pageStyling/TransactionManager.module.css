@@ -1,65 +1,107 @@
-:root {
-    --primary: #5a9fb2;
-    --background: #1a1a1a;
-    --text: #f0f0f0;
-  }
-  
-  .container {
-    text-align: center;
-    padding: 20px;
-    color: var(--text);
-    background-color: var(--background);
-    min-height: 100vh;
-  }
-  
-  .title {
-    font-size: 3.5rem;
-    color: var(--primary);
-    margin-bottom: 30px;
-  }
-  
-  .transactionList {
-    max-width: 600px;
-    margin: 20px auto;
-    border: 1px solid var(--primary);
-    border-radius: 8px;
-    padding: 20px;
-    background: rgba(26, 26, 26, 0.95);
-  }
-  
-  .transactionItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--primary);
-  }
-  
-  .transactionItem:last-child {
-    border-bottom: none;
-  }
-  
-  .transactionInfo {
-    text-align: left;
-    flex: 1;
-  }
-  
-  .transactionInfo p {
-    margin: 5px 0;
-  }
-  
-  .actionButton {
-    width: 100px;
-    padding: 10px;
-    background: var(--primary);
-    color: var(--text);
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  
-  .actionButton:hover {
-    opacity: 0.9;
-  }
-  
+.transactionManager {
+  text-align: center;
+  padding: 20px;
+  background-color: #1a1a1a;
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 3.5rem;
+  color: #5a9fb2;
+  margin: 30px 0;
+}
+
+.transactionBox {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 2px solid #5a9fb2;
+  border-radius: 8px;
+  background: rgba(26, 26, 26, 0.95);
+}
+
+.balanceSection {
+  margin-bottom: 20px;
+}
+
+.balanceTitle {
+  font-size: 1.8rem;
+  color: #5a9fb2;
+  margin-bottom: 10px;
+}
+
+.transactionItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #5a9fb2;
+  color: #ffffff;
+}
+
+.transactionItem:last-child {
+  border-bottom: none;
+}
+
+.transactionInfo {
+  display: flex;
+  gap: 20px;
+}
+
+.transactionInfo span {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.transactionButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.transactionButtons button {
+  width: 100px;
+  padding: 8px 16px;
+  background: #5a9fb2;
+  color: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.transactionButtons button:hover {
+  background: #3d7c8a;
+}
+
+.addButton,
+.returnButton {
+  display: inline-block;
+  margin-top: 20px;
+  margin-right: 10px; /* Adds space between the buttons */
+  padding: 12px 24px;
+  background: #5a9fb2;
+  color: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.addButton:hover,
+.returnButton:hover {
+  background: #3d7c8a;
+}
+
+.noTransactions {
+  color: #f0f0f0;
+  font-size: 1.5rem;
+  margin-top: 20px;
+}
+.error {
+  color: red; /* Changes error messages to red */
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
