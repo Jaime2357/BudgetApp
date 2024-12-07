@@ -149,7 +149,7 @@ const TransactionManager = () => {
             </Link>
 
             <button 
-                    onClick={() => navigate(-1)} 
+                    onClick={() => navigate("/")} 
                     className={styles.returnButton}
                 >
                     Return
