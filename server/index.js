@@ -6,6 +6,9 @@ const bcrypt = require('bcrypt');
 // Enable CORS for all routes
 app.use(cors());
 
+// Enable JSON parsing
+app.use(express.json());
+
 const { default: JdbcDriver, ConnectionType } = require("node-jdbc-driver");
 const { get } = require('https');
 ConnectionType.postgreSql // for postgreSql connection
@@ -118,33 +121,46 @@ async function newBalance(user_id, balance_name, balance_type, amount) {
   }
 }
 
+// Transaction functions =================================================================================
+
 async function newTransaction(user_id, balance_id, transaction_name, transaction_type, amount) {
+  if (!user_id || !balance_id || !transaction_name || !transaction_type || amount === undefined) {
+      throw new Error("Invalid input parameters");
+  }
 
   const escapedTransactionName = transaction_name.replace(/'/g, "''");
-
   const insertTransaction = `
-    INSERT INTO Transactions (
-      balance_id, 
-      user_id,
-      transaction_name, 
-      transaction_type, 
-      amount
-    ) VALUES (
-      ${balance_id}, 
-      ${user_id},
-      '${escapedTransactionName}', 
-      '${transaction_type}', 
-      ${amount}
-    )
-    ON CONFLICT (transaction_name) DO NOTHING;`;
+      INSERT INTO Transactions (
+          balance_id, 
+          user_id,
+          transaction_name, 
+          transaction_type, 
+          amount
+      ) VALUES (
+          ${balance_id}, 
+          ${user_id},
+          '${escapedTransactionName}', 
+          '${transaction_type}', 
+          ${amount}
+      )
+      ON CONFLICT (transaction_name) DO NOTHING;
+  `;
+
+  console.log("Executing query:", insertTransaction); // Debugging log
 
   try {
-    await jdbc.ddl(insertTransaction);
-  }
-  catch (e) {
-    console.log("Error: ", e);
+      const result = await jdbc.ddl(insertTransaction);
+      if (result === 0) {
+          throw new Error("Transaction name already exists");
+      }
+  } catch (e) {
+      console.error("Error inserting transaction:", e);
+      throw e; // Propagate the error
   }
 }
+
+
+
 
 // Functions to Delete Rows
 async function deleteTransaction(transaction_id) {
@@ -162,6 +178,38 @@ async function deleteTransaction(transaction_id) {
   }
 }
 
+// Function to get Transaction
+async function getTransaction(user_id) {
+  const fetchTransactionsQuery = `
+    SELECT transaction_id, transaction_name, transaction_type, amount, transaction_date, transaction_time
+    FROM Transactions
+    WHERE user_id = ${user_id};
+  `;
+
+  try {
+    const result = await jdbc.sql(fetchTransactionsQuery);
+    return result;
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    throw error;
+  }
+}
+
+async function updateTransaction(transaction_id, transaction_name, transaction_type, amount) {
+  const updateTransactionQuery = `
+    UPDATE Transactions
+    SET transaction_name = '${transaction_name}', transaction_type = '${transaction_type}', amount = ${amount}
+    WHERE transaction_id = ${transaction_id};
+  `;
+
+  try{
+    await jdbc.ddl(updateTransactionQuery);
+  }catch(error){
+    console.error("Error updating transaction:", error);
+    throw error;
+  }
+}
+// Balances Functions ====================================================================================
 async function deleteBalance(balance_id) {
 
   const removeTransactions = `
@@ -363,6 +411,17 @@ app.get('/api/login', async (req, res) => {
   console.log(ID);
   res.json(ID);
 });
+app.get('/api/getTransactions', async (req, res) => {
+  const user_id = req.query.user_id;
+
+  try {
+    const transactions = await getTransaction(user_id);
+    res.status(200).json(transactions);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching transactions', error });
+  }
+});
+
 
 //setter functions ------------------------------------
 
@@ -418,5 +477,47 @@ app.post('/api/deleteTable', async (req, res) => {
   await deleteBalance(balance_id);
   res.sendStatus(204);
 })
+
+app.post('/api/deleteTransaction', async (req, res) => {
+  const user_id = req.query.user_id;
+  await deleteTransaction(transaction_id);
+  res.sendStatus(204);
+})
+
+app.post('/api/newTransactions', async (req, res) => {
+  const { user_id, balance_id, transaction_name, transaction_type, amount } = req.body;
+
+  console.log("Received data:", { user_id, balance_id, transaction_name, transaction_type, amount });
+
+  if (!user_id || !balance_id || !transaction_name || !transaction_type || amount === undefined) {
+      return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  try {
+      await newTransaction(balance_id,user_id, transaction_name, transaction_type, amount);
+      res.sendStatus(204); // No content
+  } catch (error) {
+      console.error("Error inserting transaction:", error);
+      res.status(500).json({ message: 'Error adding new transaction', error });
+  }
+});
+
+
+
+
+
+app.put('/api/updateTransactions/:id', async (req, res) => {
+  const transaction_id = req.params.id;
+  const { transaction_name, transaction_type, amount } = req.query;
+
+  try {
+    await updateTransaction(transaction_id, transaction_name, transaction_type, amount);
+    res.sendStatus(204); // No content
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating transaction', error });
+  }
+});
+
+
 
 app.listen(3001, () => console.log('Server running on port 3001'));
