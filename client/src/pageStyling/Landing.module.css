@@ -134,3 +134,29 @@
   height: 12px;
   margin-left: 5px;
 }
+
+.actionLinks {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Space between the buttons */
+  margin-top: 20px;
+}
+
+.buttonLink {
+  display: inline-block;
+  width: 150px;
+  padding: 12px 24px;
+  background: #5a9fb2;
+  color: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  text-decoration: none;
+  cursor: pointer;
+  margin: 10px 0; /* Add vertical margin for spacing */
+  transition: background-color 0.3s ease;
+}
+
+.buttonLink:hover {
+  background: #3d7c8a;
+}
