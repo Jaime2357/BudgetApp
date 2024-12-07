@@ -4,7 +4,6 @@ import { MyContext } from '../MyContext';
 import axios from "axios";
 
 import styles from '../pageStyling/Landing.module.css';
-import AddButton from '../assets/Add Icon.png';
 import SelectButton from '../assets/Selection Arrow.png';
 
 const Landing = () => {
@@ -12,7 +11,6 @@ const Landing = () => {
     const [balances, setBalances] = useState([]);
     const [displayIndex, setDisplay] = useState(14);
     const [balancesOpen, setBalancesOpen] = useState(false);
-    const [transactionsOpen, setTransactionsOpen] = useState(false);
     const { user_id, setUserID, validated, setValidated } = useContext(MyContext);
 
     useEffect(() => {
@@ -22,11 +20,11 @@ const Landing = () => {
                     params: { user_id: user_id }
                 });
                 setName(nameresp.data[0].username);
-            }
-            catch (e) {
+            } catch (e) {
                 console.log("Error: ", e);
             }
-        }
+        };
+
         const getBalances = async () => {
             try {
                 await axios.post('/api/createTables');
@@ -80,25 +78,13 @@ const Landing = () => {
                 <h2 className={styles.amount}>${balances[displayIndex]?.amount}</h2>
             </div>
 
-            <Link to="/balancemanager" className={styles.buttonLink}>
-                Manage Balances
-            </Link>
-
-            <div className={styles.cornerMenu}>
-                <button 
-                    className={styles.dropdownButton} 
-                    onClick={() => setTransactionsOpen(!transactionsOpen)}
-                >
-                    <img src={AddButton} alt="Add" className={styles.icon} />
-                </button>
-                
-                {transactionsOpen && (
-                    <ul className={styles.menuList}>
-                        {['Income', 'Spending', 'Credit Payment', 'Transfer'].map((item) => (
-                            <button key={item}>{item}</button>
-                        ))}
-                    </ul>
-                )}
+            <div className={styles.actionLinks}>
+                <Link to="/balancemanager" className={styles.buttonLink}>
+                    Manage Balances
+                </Link>
+                <Link to="/transactionmanager" className={styles.buttonLink}>
+                    Manage Transactions
+                </Link>
             </div>
         </div>
     );
