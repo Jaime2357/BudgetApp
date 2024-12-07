@@ -47,14 +47,14 @@ async function createTables() {
       FOREIGN KEY (user_id) REFERENCES Users(user_id)
     );`;
 
-  const createTransactions = `
+    const createTransactions = `
     CREATE TABLE IF NOT EXISTS Transactions (
       transaction_id SERIAL PRIMARY KEY,
       balance_id INT NOT NULL,
       user_id INT NOT NULL,
       transaction_name VARCHAR(20) NOT NULL UNIQUE,
       transaction_type VARCHAR(20) 
-        NOT NULL CHECK (transaction_type = 'spending' OR transaction_type = 'income'),
+        NOT NULL CHECK (transaction_type IN ('spending', 'income', 'transfer', 'pay credit')), -- Updated to include more types
       amount DECIMAL(20, 2) NOT NULL DEFAULT 0.00,
       transaction_date DATE DEFAULT CURRENT_DATE,
       transaction_time TIME DEFAULT CURRENT_TIME,
@@ -128,6 +128,26 @@ async function newTransaction(user_id, balance_id, transaction_name, transaction
       throw new Error("Invalid input parameters");
   }
 
+  // Verify user_id exists
+  const checkUserQuery = `SELECT COUNT(*) FROM Users WHERE user_id = ${user_id};`;
+  const userExists = await jdbc.sql(checkUserQuery);
+  if (userExists[0].count === "0") {
+      throw new Error(`User ID ${user_id} does not exist.`);
+  }
+
+  // Verify balance_id exists
+  const checkBalanceQuery = `SELECT COUNT(*) FROM Balances WHERE balance_id = ${balance_id};`;
+  const balanceExists = await jdbc.sql(checkBalanceQuery);
+  if (balanceExists[0].count === "0") {
+      throw new Error(`Balance ID ${balance_id} does not exist.`);
+  }
+
+  const validTransactionTypes = ['spending', 'income', 'transfer', 'pay credit'];
+
+if (!validTransactionTypes.includes(transaction_type)) {
+    throw new Error(`Invalid transaction type: ${transaction_type}`);
+}
+
   const escapedTransactionName = transaction_name.replace(/'/g, "''");
   const insertTransaction = `
       INSERT INTO Transactions (
@@ -181,19 +201,20 @@ async function deleteTransaction(transaction_id) {
 // Function to get Transaction
 async function getTransaction(user_id) {
   const fetchTransactionsQuery = `
-    SELECT transaction_id, transaction_name, transaction_type, amount, transaction_date, transaction_time
-    FROM Transactions
-    WHERE user_id = ${user_id};
+      SELECT transaction_id, balance_id, transaction_name, transaction_type, amount, transaction_date, transaction_time
+      FROM Transactions
+      WHERE user_id = ${user_id};
   `;
 
   try {
-    const result = await jdbc.sql(fetchTransactionsQuery);
-    return result;
+      const result = await jdbc.sql(fetchTransactionsQuery);
+      return result;
   } catch (error) {
-    console.error("Error fetching transactions:", error);
-    throw error;
+      console.error("Error fetching transactions:", error);
+      throw error;
   }
 }
+
 
 async function updateTransaction(transaction_id, transaction_name, transaction_type, amount) {
   const updateTransactionQuery = `
@@ -423,6 +444,7 @@ app.get('/api/getTransactions', async (req, res) => {
 });
 
 
+
 //setter functions ------------------------------------
 
 app.post('/api/createTables', async (req, res) => {
@@ -478,11 +500,17 @@ app.post('/api/deleteTable', async (req, res) => {
   res.sendStatus(204);
 })
 
-app.post('/api/deleteTransaction', async (req, res) => {
-  const user_id = req.query.user_id;
-  await deleteTransaction(transaction_id);
-  res.sendStatus(204);
-})
+app.delete('/api/getTransactions/:transaction_id', async (req, res) => {
+  const { transaction_id } = req.params;
+
+  try {
+    await deleteTransaction(transaction_id); // Pass the transaction_id
+    res.sendStatus(204); // Success
+  } catch (error) {
+    console.error("Error deleting transaction:", error);
+    res.status(500).json({ message: 'Error deleting transaction', error });
+  }
+});
 
 app.post('/api/newTransactions', async (req, res) => {
   const { user_id, balance_id, transaction_name, transaction_type, amount } = req.body;
@@ -494,14 +522,13 @@ app.post('/api/newTransactions', async (req, res) => {
   }
 
   try {
-      await newTransaction(balance_id,user_id, transaction_name, transaction_type, amount);
+      await newTransaction( user_id,balance_id,  transaction_name, transaction_type, amount);
       res.sendStatus(204); // No content
   } catch (error) {
       console.error("Error inserting transaction:", error);
       res.status(500).json({ message: 'Error adding new transaction', error });
   }
 });
-
 
 
 
