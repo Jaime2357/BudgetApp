@@ -9,7 +9,6 @@ const NewTransaction = () => {
     const [transaction_type, setTransactionType] = useState('spending');
     const [amount, setAmount] = useState(0.00);
     const [error, setError] = useState(null);
-    const [redirect, setRedirect] = useState(false);
     const [balance_id, setBalanceID] = useState(0);
     const [transaction_name, setTransactionName] = useState("");
     const [balances, setBalances] = useState([]); // Initialize balances state
@@ -49,8 +48,8 @@ const NewTransaction = () => {
     const createTransaction = async (e) => {
         e.preventDefault();
         setError(null);
-    
-        // Ensure required fields are filled
+
+        // Validation checks
         if (!transaction_name.trim()) {
             setError('Transaction name is required.');
             return;
@@ -63,27 +62,24 @@ const NewTransaction = () => {
             setError('Amount must be greater than 0.');
             return;
         }
-    
+
         try {
-            // Send the data as JSON in the body
             const response = await axios.post('/api/newTransactions', {
-                balance_id,
-                user_id,
+                user_id, // Ensure user_id is defined
+                balance_id, // Ensure balance_id is valid
                 transaction_name,
                 transaction_type,
                 amount,
             });
             if (response.status === 204) {
-                setRedirect(true);
+                navigate('/transactionmanager'); // Redirect to Transaction Manager
             }
         } catch (e) {
             setError(e.response?.data?.message || 'An error occurred. Please try again.');
             console.log("Error: ", e);
         }
     };
-    
 
-    if (redirect) return <Navigate to='/balancemanager' />;
     if (!validated) return <Navigate to='/login' />;
 
     return (
@@ -102,7 +98,7 @@ const NewTransaction = () => {
                 <h2>Transaction Type</h2>
                 <select
                     value={transaction_type}
-                    onChange={(ev) => setTransactionType(ev.target.value)}
+                    onChange={(ev) => setTransactionType(ev.target.value.toLowerCase())}
                 >
                     <option value="spending">Spending</option>
                     <option value="income">Income</option>
@@ -134,14 +130,6 @@ const NewTransaction = () => {
             </form>
 
             <div className={styles.buttonContainer}>
-                {/* Button to navigate to Transaction Manager */}
-                <button 
-                    onClick={() => navigate('/transactionmanager')} 
-                    className={styles.manageButton}
-                >
-                    Manage Transactions
-                </button>
-
                 {/* Button to navigate back */}
                 <button 
                     onClick={() => navigate(-1)} 
