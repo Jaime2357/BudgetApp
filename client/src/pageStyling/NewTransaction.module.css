@@ -22,7 +22,7 @@
 
 .newTransactionBox {
   width: 350px;
-  margin: 20px auto;
+  margin: 0 auto;
   padding: 30px;
   border: 1px solid var(--primary);
   border-radius: 8px;
@@ -40,9 +40,9 @@
   margin: 15px 0 10px;
 }
 
-.input,
-.select {
-  width: calc(100% - 24px);
+.newTransactionBox input,
+.newTransactionBox select {
+  width: 100%;
   padding: 12px;
   background: var(--background);
   border: 1px solid var(--primary);
@@ -52,89 +52,24 @@
   margin-bottom: 20px;
 }
 
-.submitButton {
-  width: 40%;
-  padding: 12px;
-  background: var(--primary);
-  color: var(--text);
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  margin: 20px auto;
-  display: block;
-  font-weight: 600;
-}
-
-.returnLink {
-  color: var(--text);
-  text-decoration: none;
-  font-size: 1.1rem;
-  padding: 12px 24px;
-  border: 1px solid var(--primary);
-  border-radius: 4px;
-  display: inline-block;
-  margin-top: 20px;
-}
-
-.dropdownMenu {
-  position: relative;
-  margin: 15px 0;
-}
-
-.dropdownButton {
-  width: 40%;
-  padding: 12px;
-  background: var(--primary);
-  color: var(--text);
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  text-transform: capitalize;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 auto 20px auto;
-}
-
-.dropdownButton::after {
-  content: '▼';
-  font-size: 0.8rem;
-  margin-left: 8px;
-}
-
-.menuList {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40%;
-  background: var(--background);
-  border: 1px solid var(--primary);
-  border-radius: 4px;
-  padding: 10px;
-  z-index: 1000;
-}
-
-.menuList button {
+.submitButton,
+.returnButton {
   width: 100%;
+  max-width: 200px;
   padding: 12px;
-  background: none;
-  border: none;
+  background: var(--primary);
   color: var(--text);
+  border: none;
+  border-radius: 4px;
   font-size: 1.1rem;
   cursor: pointer;
+  margin: 10px auto;
   text-align: center;
 }
 
-.menuList button:hover {
-  background: var(--primary);
-}
-
 .submitButton:hover,
-.dropdownButton:hover,
-.menuList button:hover,
-.returnLink:hover {
+.returnButton:hover {
+  background: #3d7c8a;
   opacity: 0.9;
 }
 
@@ -146,7 +81,14 @@
 }
 
 .error {
-  color: var(--error); /* Changes error messages to red */
+  color: var(--error);
   font-size: 1.2rem;
   margin: 10px 0;
+}
+
+.buttonContainer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Adds spacing between buttons */
 }
