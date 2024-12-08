@@ -6,12 +6,13 @@ import styles from "../pageStyling/NewTransaction.module.css";
 
 const NewTransaction = () => {
     const { user_id, validated } = useContext(MyContext);
-    const [transaction_type, setTransactionType] = useState('spending');
+    const [transaction_type, setTransactionType] = useState("spending");
     const [amount, setAmount] = useState(0.00);
     const [error, setError] = useState(null);
     const [balance_id, setBalanceID] = useState(0);
     const [transaction_name, setTransactionName] = useState("");
-    const [balances, setBalances] = useState([]); // Initialize balances state
+    const [to_balance_id, setToBalanceID] = useState(null); // For transfer transactions
+    const [balances, setBalances] = useState([]);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -19,68 +20,58 @@ const NewTransaction = () => {
     useEffect(() => {
         const fetchBalances = async () => {
             try {
-                const response = await axios.get('/api/getBalances', {
-                    params: { user_id: user_id }
-                });
+                const response = await axios.get('/api/getBalances', { params: { user_id } });
                 if (response.data.length > 0) {
-                    setBalances(response.data); // Store available balances
-                    setBalanceID(response.data[0].balance_id); // Default to the first balance
+                    setBalances(response.data);
+                    setBalanceID(response.data[0].balance_id);
                 } else {
-                    setError('No balances available. Please create a balance first.');
+                    setError("No balances available. Please create a balance first.");
                 }
             } catch (error) {
-                console.error('Error fetching balances:', error);
-                setError('Failed to load balances.');
+                console.error("Error fetching balances:", error);
+                setError("Failed to load balances.");
             }
         };
-
         fetchBalances();
 
-        // Get transaction type from URL params
         const params = new URLSearchParams(location.search);
-        const type = params.get('type');
-        if (type) {
-            setTransactionType(type);
-        }
+        const type = params.get("type");
+        if (type) setTransactionType(type);
     }, [user_id, location.search]);
 
-    // Function to create a new transaction
     const createTransaction = async (e) => {
         e.preventDefault();
         setError(null);
-
-        // Validation checks
-        if (!transaction_name.trim()) {
-            setError('Transaction name is required.');
-            return;
-        }
-        if (!balance_id || balance_id === 0) {
-            setError('Balance ID is required.');
-            return;
-        }
-        if (!amount || amount <= 0) {
-            setError('Amount must be greater than 0.');
+    
+        if (!transaction_name.trim() || !balance_id || amount <= 0 || (transaction_type === "transfer" && !to_balance_id)) {
+            setError("All fields are required, and amount must be greater than 0.");
             return;
         }
 
+        if (transaction_type === "transfer" && !to_balance_id) {
+            setError("Target balance must be selected for transfer transactions.");
+            return;
+        }
+    
         try {
-            const response = await axios.post('/api/newTransactions', {
-                user_id, // Ensure user_id is defined
-                balance_id, // Ensure balance_id is valid
+            // Step 1: Create the transaction
+            await axios.post("/api/newTransactions", {
+                user_id,
+                balance_id,
                 transaction_name,
                 transaction_type,
                 amount,
+                to_balance_id: transaction_type === "transfer" ? to_balance_id : null, // Ensure this is sent
             });
-            if (response.status === 204) {
-                navigate('/transactionmanager'); // Redirect to Transaction Manager
-            }
+    
+            navigate("/transactionmanager");
         } catch (e) {
-            setError(e.response?.data?.message || 'An error occurred. Please try again.');
-            console.log("Error: ", e);
+            console.error("Error creating transaction:", e);
+            setError("An error occurred. Please try again.");
         }
     };
 
-    if (!validated) return <Navigate to='/login' />;
+    if (!validated) return <Navigate to="/login" />;
 
     return (
         <div className={styles.container}>
@@ -90,15 +81,14 @@ const NewTransaction = () => {
                 <input
                     type="text"
                     value={transaction_name}
-                    onChange={(ev) => setTransactionName(ev.target.value)}
-                    placeholder="Groceries"
+                    onChange={(e) => setTransactionName(e.target.value)}
+                    placeholder="e.g., Groceries"
                     required
-                    minLength="1"
                 />
                 <h2>Transaction Type</h2>
                 <select
                     value={transaction_type}
-                    onChange={(ev) => setTransactionType(ev.target.value.toLowerCase())}
+                    onChange={(e) => setTransactionType(e.target.value)}
                 >
                     <option value="spending">Spending</option>
                     <option value="income">Income</option>
@@ -108,7 +98,8 @@ const NewTransaction = () => {
                 <h2>Select Balance</h2>
                 <select
                     value={balance_id}
-                    onChange={(ev) => setBalanceID(ev.target.value)}
+                    onChange={(e) => setBalanceID(e.target.value)}
+                    required
                 >
                     {balances.map((balance) => (
                         <option key={balance.balance_id} value={balance.balance_id}>
@@ -116,28 +107,38 @@ const NewTransaction = () => {
                         </option>
                     ))}
                 </select>
+                {transaction_type === "transfer" && (
+                    <>
+                        <h2>To Balance</h2>
+                        <select
+                            value={to_balance_id}
+                            onChange={(e) => setToBalanceID(e.target.value)}
+                            required
+                        >
+                            <option value="">Select Balance</option>
+                            {balances
+                                .filter((b) => b.balance_id !== balance_id)
+                                .map((balance) => (
+                                    <option key={balance.balance_id} value={balance.balance_id}>
+                                        {balance.balance_name}
+                                    </option>
+                                ))}
+                        </select>
+                    </>
+                )}
                 <h2>Amount</h2>
                 <input
                     type="number"
                     value={amount}
-                    onChange={(ev) => setAmount(ev.target.value)}
+                    onChange={(e) => setAmount(parseFloat(e.target.value))}
                     placeholder="0.00"
                     required
-                    min="0.00"
                 />
-                <button type="submit" className={styles.submitButton}>Submit</button>
+                <button type="submit" className={styles.submitButton}>
+                    Submit
+                </button>
                 {error && <p className={styles.error}>{error}</p>}
             </form>
-
-            <div className={styles.buttonContainer}>
-                {/* Button to navigate back */}
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className={styles.returnButton}
-                >
-                    Return
-                </button>
-            </div>
         </div>
     );
 };
