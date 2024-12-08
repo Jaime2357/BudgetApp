@@ -230,6 +230,47 @@ async function updateTransaction(transaction_id, transaction_name, transaction_t
     throw error;
   }
 }
+
+async function updateBalances(transaction_type, balance_id, amount, to_balance_id = null) {
+  try {
+      if (transaction_type === "spending") {
+          await jdbc.ddl(`
+              UPDATE Balances
+              SET amount = amount - ${amount}
+              WHERE balance_id = ${balance_id};
+          `);
+      } else if (transaction_type === "income") {
+          await jdbc.ddl(`
+              UPDATE Balances
+              SET amount = amount + ${amount}
+              WHERE balance_id = ${balance_id};
+          `);
+      } else if (transaction_type === "transfer") {
+          if (!to_balance_id) throw new Error("Target balance ID is required for transfer");
+          await jdbc.ddl(`
+              UPDATE Balances
+              SET amount = amount - ${amount}
+              WHERE balance_id = ${balance_id};
+          `);
+          await jdbc.ddl(`
+              UPDATE Balances
+              SET amount = amount + ${amount}
+              WHERE balance_id = ${to_balance_id};
+          `);
+      } else if (transaction_type === "pay credit") {
+          await jdbc.ddl(`
+              UPDATE Balances
+              SET amount = amount - ${amount}
+              WHERE balance_id = ${balance_id};
+          `);
+      } else {
+          throw new Error("Invalid transaction type");
+      }
+  } catch (error) {
+      console.error("Error updating balances:", error);
+      throw error;
+  }
+}
 // Balances Functions ====================================================================================
 async function deleteBalance(balance_id) {
 
@@ -513,17 +554,19 @@ app.delete('/api/getTransactions/:transaction_id', async (req, res) => {
 });
 
 app.post('/api/newTransactions', async (req, res) => {
-  const { user_id, balance_id, transaction_name, transaction_type, amount } = req.body;
+  const { user_id, balance_id, transaction_name, transaction_type, amount, to_balance_id } = req.body;
 
-  console.log("Received data:", { user_id, balance_id, transaction_name, transaction_type, amount });
+  console.log("Received data:", { user_id, balance_id, transaction_name, transaction_type, amount, to_balance_id });
 
-  if (!user_id || !balance_id || !transaction_name || !transaction_type || amount === undefined) {
-      return res.status(400).json({ message: 'All fields are required.' });
+  if (!user_id || !balance_id || !transaction_name || !transaction_type || amount === undefined || 
+      (transaction_type === "transfer" && !to_balance_id)) {
+      return res.status(400).json({ message: 'All fields are required, including target balance for transfers.' });
   }
 
   try {
-      await newTransaction( user_id,balance_id,  transaction_name, transaction_type, amount);
-      res.sendStatus(204); // No content
+      await newTransaction(user_id, balance_id, transaction_name, transaction_type, amount);
+      await updateBalances(transaction_type, balance_id, amount, to_balance_id); // Ensure this is valid
+      res.sendStatus(204);
   } catch (error) {
       console.error("Error inserting transaction:", error);
       res.status(500).json({ message: 'Error adding new transaction', error });
@@ -535,12 +578,24 @@ app.post('/api/newTransactions', async (req, res) => {
 
 app.put('/api/updateTransactions/:id', async (req, res) => {
   const transaction_id = req.params.id;
-  const { transaction_name, transaction_type, amount } = req.query;
+  const { transaction_name, transaction_type, amount, balance_id, to_balance_id } = req.body;
+
+  console.log("Updating transaction:", { transaction_id, transaction_name, transaction_type, amount, balance_id, to_balance_id });
+
+  if (!transaction_id || !transaction_name || !transaction_type || amount === undefined || !balance_id) {
+    return res.status(400).json({ message: 'All fields are required for updating transaction.' });
+  }
 
   try {
+    // Update transaction in the database
     await updateTransaction(transaction_id, transaction_name, transaction_type, amount);
+
+    // Update balances based on the updated transaction type
+    await updateBalances(transaction_type, balance_id, amount, to_balance_id);
+
     res.sendStatus(204); // No content
   } catch (error) {
+    console.error("Error updating transaction:", error);
     res.status(500).json({ message: 'Error updating transaction', error });
   }
 });
