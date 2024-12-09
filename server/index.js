@@ -15,9 +15,9 @@ ConnectionType.postgreSql // for postgreSql connection
 
 const host = 'localhost'; // Change based on host
 const port = '5000'; // Change based on port
-const database = 'taanishq'; // Change based on dbName
-const username = 'taanishqsethi';
-//const password = 'devpass';
+const database = 'jaime'; // Change based on dbName
+const username = 'jaime';
+const password = 'devpass';
 
 // Set optional parameters
 const minpoolsize = '0'
@@ -214,14 +214,24 @@ async function getTransaction(user_id) {
       throw error;
   }
 }
-async function updateBalances(transaction_type, balance_id, amount, to_balance_id = null) {
+async function updateBalances(transaction_type, balance_id, balance_type, amount, to_balance_id = null) {
   try {
+      console.log("Backend Balance Type:", balance_type);
       if (transaction_type === "spending") {
+        if(balance_type === "credit"){
+          await jdbc.ddl(`
+            UPDATE Balances
+            SET amount = amount + ${amount}
+            WHERE balance_id = ${balance_id};
+        `);
+        }
+        else{
           await jdbc.ddl(`
               UPDATE Balances
               SET amount = amount - ${amount}
               WHERE balance_id = ${balance_id};
           `);
+        }
       } else if (transaction_type === "income") {
           await jdbc.ddl(`
               UPDATE Balances
@@ -246,6 +256,11 @@ async function updateBalances(transaction_type, balance_id, amount, to_balance_i
               SET amount = amount - ${amount}
               WHERE balance_id = ${balance_id};
           `);
+          await jdbc.ddl(`
+            UPDATE Balances
+            SET amount = amount - ${amount}
+            WHERE balance_id = ${to_balance_id};
+        `);
       } else {
           throw new Error("Invalid transaction type");
       }
@@ -524,8 +539,8 @@ app.post('/api/deleteTable', async (req, res) => {
   res.sendStatus(204);
 })
 
-app.delete('/api/getTransactions/:transaction_id', async (req, res) => {
-  const { transaction_id } = req.params;
+app.delete('/api/getTransactions', async (req, res) => {
+  const transaction_id = req.query.transaction_id;
 
   try {
     await deleteTransaction(transaction_id); // Pass the transaction_id
@@ -549,18 +564,18 @@ app.delete('/api/deleteUser', async (req, res) => {
 });
 
 app.post('/api/newTransactions', async (req, res) => {
-  const { user_id, balance_id, transaction_name, transaction_type, amount, to_balance_id } = req.body;
+  const { user_id, balance_id, balance_type, transaction_name, transaction_type, amount, to_balance_id } = req.body;
 
-  console.log("Received data:", { user_id, balance_id, transaction_name, transaction_type, amount, to_balance_id });
+  console.log("Received data:", { user_id, balance_id, balance_type, transaction_name, transaction_type, amount, to_balance_id });
 
-  if (!user_id || !balance_id || !transaction_name || !transaction_type || amount === undefined || 
+  if (!user_id || !balance_id || !balance_type || !transaction_name || !transaction_type || amount === undefined || 
       (transaction_type === "transfer" && !to_balance_id)) {
       return res.status(400).json({ message: 'All fields are required, including target balance for transfers.' });
   }
 
   try {
       await newTransaction(user_id, balance_id, transaction_name, transaction_type, amount);
-      await updateBalances(transaction_type, balance_id, amount, to_balance_id); // Ensure this is valid
+      await updateBalances(transaction_type, balance_id, balance_type, amount, to_balance_id); // Ensure this is valid
       res.sendStatus(204);
   } catch (error) {
       console.error("Error inserting transaction:", error);

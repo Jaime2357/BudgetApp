@@ -44,13 +44,18 @@ const TransactionManager = () => {
             });
     }, [user_id]);
 
-    const handleDelete = (id) => {
+    const handleDelete = (Tid) => {
         axios
-            .delete(`/api/getTransactions/${id}`)
+            .delete("/api/getTransactions", {
+                params: { 
+                    transaction_id: Tid,
+                }
+
+            })
             .then(() => {
                 setTransactions(
                     transactions.filter(
-                        (transaction) => transaction.transaction_id !== id
+                        (transaction) => transaction.transaction_id !== Tid
                     )
                 );
             })
@@ -112,7 +117,7 @@ const TransactionManager = () => {
                                                 className={styles.deleteButton}
                                                 onClick={() =>
                                                     handleDelete(
-                                                        transaction.transaction_id
+                                                        transaction.transaction_id,
                                                     )
                                                 }
                                             >
@@ -134,12 +139,12 @@ const TransactionManager = () => {
                 Add Transaction
             </Link>
 
-            <button 
-                    onClick={() => navigate("/")} 
-                    className={styles.returnButton}
-                >
-                    Return
-                </button>
+            <button
+                onClick={() => navigate("/")}
+                className={styles.returnButton}
+            >
+                Return
+            </button>
         </div>
     );
 };
