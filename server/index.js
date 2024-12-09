@@ -576,29 +576,29 @@ app.post('/api/newTransactions', async (req, res) => {
 
 
 
-app.put('/api/updateTransactions/:id', async (req, res) => {
-  const transaction_id = req.params.id;
-  const { transaction_name, transaction_type, amount, balance_id, to_balance_id } = req.body;
+// app.put('/api/updateTransactions/:id', async (req, res) => {
+//   const transaction_id = req.params.id;
+//   const { transaction_name, transaction_type, amount, balance_id, to_balance_id } = req.body;
 
-  console.log("Updating transaction:", { transaction_id, transaction_name, transaction_type, amount, balance_id, to_balance_id });
+//   console.log("Updating transaction:", { transaction_id, transaction_name, transaction_type, amount, balance_id, to_balance_id });
 
-  if (!transaction_id || !transaction_name || !transaction_type || amount === undefined || !balance_id) {
-    return res.status(400).json({ message: 'All fields are required for updating transaction.' });
-  }
+//   if (!transaction_id || !transaction_name || !transaction_type || amount === undefined || !balance_id) {
+//     return res.status(400).json({ message: 'All fields are required for updating transaction.' });
+//   }
 
-  try {
-    // Update transaction in the database
-    await updateTransaction(transaction_id, transaction_name, transaction_type, amount);
+//   try {
+//     // Update transaction in the database
+//     await updateTransaction(transaction_id, transaction_name, transaction_type, amount);
 
-    // Update balances based on the updated transaction type
-    await updateBalances(transaction_type, balance_id, amount, to_balance_id);
+//     // Update balances based on the updated transaction type
+//     await updateBalances(transaction_type, balance_id, amount, to_balance_id);
 
-    res.sendStatus(204); // No content
-  } catch (error) {
-    console.error("Error updating transaction:", error);
-    res.status(500).json({ message: 'Error updating transaction', error });
-  }
-});
+//     res.sendStatus(204); // No content
+//   } catch (error) {
+//     console.error("Error updating transaction:", error);
+//     res.status(500).json({ message: 'Error updating transaction', error });
+//   }
+// });
 
 
 
