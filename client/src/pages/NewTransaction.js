@@ -52,6 +52,13 @@ const NewTransaction = () => {
             setError("Target balance must be selected for transfer transactions.");
             return;
         }
+
+        // Disallow transfer to/from credit balance types
+        if (transaction_type === "transfer" && to_balance_id === balance_id) {
+            setError("Cannot transfer to the same balance.");
+            return;
+        }
+
     
         try {
             // Step 1: Create the transaction
@@ -101,12 +108,16 @@ const NewTransaction = () => {
                     onChange={(e) => setBalanceID(e.target.value)}
                     required
                 >
-                    {balances.map((balance) => (
-                        <option key={balance.balance_id} value={balance.balance_id}>
-                            {balance.balance_name}
-                        </option>
-                    ))}
+                    <option value="">Select Balance</option>
+                    {balances
+                        .filter((b) => b.balance_type !== "credit") // Exclude balances with the type "credit"
+                        .map((balance) => (
+                            <option key={balance.balance_id} value={balance.balance_id}>
+                                {balance.balance_name}
+                            </option>
+                        ))}
                 </select>
+
                 {transaction_type === "transfer" && (
                     <>
                         <h2>To Balance</h2>
@@ -117,7 +128,11 @@ const NewTransaction = () => {
                         >
                             <option value="">Select Balance</option>
                             {balances
-                                .filter((b) => b.balance_id !== balance_id)
+                                .filter(
+                                    (b) =>
+                                        b.balance_id.toString() !== balance_id && // Exclude the selected "Select Balance"
+                                        b.balance_type !== "credit" // Exclude balances with the type "credit"
+                                )
                                 .map((balance) => (
                                     <option key={balance.balance_id} value={balance.balance_id}>
                                         {balance.balance_name}
@@ -136,6 +151,13 @@ const NewTransaction = () => {
                 />
                 <button type="submit" className={styles.submitButton}>
                     Submit
+                </button>
+                <button
+                    type="button"
+                    className={styles.returnButton}
+                    onClick={() => navigate(-1)}
+                >
+                    Return
                 </button>
                 {error && <p className={styles.error}>{error}</p>}
             </form>
