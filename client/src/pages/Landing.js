@@ -11,7 +11,13 @@ const Landing = () => {
     const [balances, setBalances] = useState([]);
     const [displayIndex, setDisplay] = useState(14);
     const [balancesOpen, setBalancesOpen] = useState(false);
-    const { user_id, setUserID, validated, setValidated } = useContext(MyContext);
+    const { user_id, validated} = useContext(MyContext);
+
+    const capitalizeFirstLetter = (string) => {
+        if (!string) return ""; // Handle empty or null strings
+        return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+    };
+
 
     useEffect(() => {
         const getName = async () => {
@@ -19,7 +25,7 @@ const Landing = () => {
                 const nameresp = await axios.get('/api/getNames', {
                     params: { user_id: user_id }
                 });
-                setName(nameresp.data[0].username);
+                setName(capitalizeFirstLetter(nameresp.data[0].username));
             } catch (e) {
                 console.log("Error: ", e);
             }
@@ -47,7 +53,7 @@ const Landing = () => {
 
     return (
         <div className={styles.container}>
-            <h1 className={styles.title}>Welcome {username}</h1>
+            <h1 className={styles.title}>Welcome {username}!</h1>
             
             <div className={styles.balanceBox}>
                 <div className={styles.balanceHeader}>
