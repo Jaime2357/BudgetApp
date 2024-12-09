@@ -15,9 +15,11 @@ ConnectionType.postgreSql // for postgreSql connection
 
 const host = 'localhost'; // Change based on host
 const port = '5000'; // Change based on port
-const database = 'jaime'; // Change based on dbName
+//const database = 'taanishq'; //Used by Taanishq
+//const username = 'taanishqsethi';
+const database = 'jaime'; // Used for Jaime
 const username = 'jaime';
-const password = 'devpass';
+//const password = 'devpass';
 
 // Set optional parameters
 const minpoolsize = '0'
