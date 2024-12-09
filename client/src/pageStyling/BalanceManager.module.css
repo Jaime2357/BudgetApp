@@ -78,6 +78,13 @@
     text-decoration: none;
 }
 
+.noBalances {
+    color: var(--text);
+    font-size: 1.2rem;
+    margin-top: 20px;
+    text-align: center;
+}
+
 .buttonLink:hover,
 .deleteButton:hover {
     background: #3d7c8a;
