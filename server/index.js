@@ -214,23 +214,6 @@ async function getTransaction(user_id) {
       throw error;
   }
 }
-
-
-async function updateTransaction(transaction_id, transaction_name, transaction_type, amount) {
-  const updateTransactionQuery = `
-    UPDATE Transactions
-    SET transaction_name = '${transaction_name}', transaction_type = '${transaction_type}', amount = ${amount}
-    WHERE transaction_id = ${transaction_id};
-  `;
-
-  try{
-    await jdbc.ddl(updateTransactionQuery);
-  }catch(error){
-    console.error("Error updating transaction:", error);
-    throw error;
-  }
-}
-
 async function updateBalances(transaction_type, balance_id, amount, to_balance_id = null) {
   try {
       if (transaction_type === "spending") {
@@ -553,6 +536,18 @@ app.delete('/api/getTransactions/:transaction_id', async (req, res) => {
   }
 });
 
+app.delete('/api/deleteUser', async (req, res) => {
+  const { user_id } = req.query;
+
+  try {
+    await deleteUser(user_id); // Call the function you provided
+    res.sendStatus(204); // Success, no content
+  } catch (e) {
+    console.error('Error deleting user:', e);
+    res.status(500).json({ message: 'Failed to delete user' });
+  }
+});
+
 app.post('/api/newTransactions', async (req, res) => {
   const { user_id, balance_id, transaction_name, transaction_type, amount, to_balance_id } = req.body;
 
@@ -572,34 +567,6 @@ app.post('/api/newTransactions', async (req, res) => {
       res.status(500).json({ message: 'Error adding new transaction', error });
   }
 });
-
-
-
-
-// app.put('/api/updateTransactions/:id', async (req, res) => {
-//   const transaction_id = req.params.id;
-//   const { transaction_name, transaction_type, amount, balance_id, to_balance_id } = req.body;
-
-//   console.log("Updating transaction:", { transaction_id, transaction_name, transaction_type, amount, balance_id, to_balance_id });
-
-//   if (!transaction_id || !transaction_name || !transaction_type || amount === undefined || !balance_id) {
-//     return res.status(400).json({ message: 'All fields are required for updating transaction.' });
-//   }
-
-//   try {
-//     // Update transaction in the database
-//     await updateTransaction(transaction_id, transaction_name, transaction_type, amount);
-
-//     // Update balances based on the updated transaction type
-//     await updateBalances(transaction_type, balance_id, amount, to_balance_id);
-
-//     res.sendStatus(204); // No content
-//   } catch (error) {
-//     console.error("Error updating transaction:", error);
-//     res.status(500).json({ message: 'Error updating transaction', error });
-//   }
-// });
-
 
 
 app.listen(3001, () => console.log('Server running on port 3001'));
