@@ -59,10 +59,6 @@ const TransactionManager = () => {
             });
     };
 
-    const handleUpdate = (id) => {
-        navigate(`/update-transaction/${id}`);
-    };
-
     // Group transactions by balance_id
     const groupedTransactions = transactions.reduce((acc, transaction) => {
         const { balance_id } = transaction;
@@ -121,16 +117,6 @@ const TransactionManager = () => {
                                                 }
                                             >
                                                 Delete
-                                            </button>
-                                            <button
-                                                className={styles.updateButton}
-                                                onClick={() =>
-                                                    handleUpdate(
-                                                        transaction.transaction_id
-                                                    )
-                                                }
-                                            >
-                                                Update
                                             </button>
                                         </div>
                                     </div>
