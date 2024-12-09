@@ -9,7 +9,6 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import BalanceManager from "./pages/BalanceManager";
 import NewTransaction from "./pages/NewTransaction";
-import TransactionUpdater from "./pages/TransactionUpdater";
 import TransactionManager from "./pages/TransactionManager"
 import NewBalance from "./pages/NewBalance";
 
@@ -29,7 +28,6 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/balancemanager" element={<BalanceManager />} />
             <Route path="/newtransaction" element={<NewTransaction />} />
-            <Route path="/transactionupdate" element={<TransactionUpdater />} /> 
             <Route path="/transactionmanager" element={<TransactionManager />} /> *
             <Route path="/newbalance" element={<NewBalance />} />
           </Route>
