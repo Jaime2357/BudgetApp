@@ -1,3 +1,5 @@
+-- Note that PostgresQL uses SERIAL for AUTO-INCREMENT
+
 -- Create the Users table
 CREATE TABLE IF NOT EXISTS Users (
     user_id SERIAL PRIMARY KEY,
