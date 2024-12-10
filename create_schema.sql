@@ -1,3 +1,4 @@
+-- Note that our application already generates tables upon running if they are not already in the database
 -- Note that PostgresQL uses SERIAL for AUTO-INCREMENT
 
 -- Create the Users table
