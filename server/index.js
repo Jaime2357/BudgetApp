@@ -19,7 +19,7 @@ const port = '5000'; // Change based on port
 //const username = 'taanishqsethi';
 const database = 'jaime'; // Used for Jaime
 const username = 'jaime';
-//const password = 'devpass';
+const password = 'devpass';
 
 // Set optional parameters
 const minpoolsize = '0'
@@ -31,6 +31,7 @@ const jdbc = new JdbcDriver(ConnectionType.postgreSql, { jdbcUrl, username});
 // Create necessary tables 
 // (Note that Postgress uses SERIAL instead of AUTO_Increment)
 async function createTables() {
+  // Prepare Statement to Create User Tables
   const createUsers = `
     CREATE TABLE IF NOT EXISTS Users (
       user_id SERIAL PRIMARY KEY,
@@ -38,6 +39,7 @@ async function createTables() {
       username VARCHAR(50) NOT NULL UNIQUE
     );`;
 
+  // Prepare Statement to Create Balance Table
   const createBalances = `
     CREATE TABLE IF NOT EXISTS Balances (
       balance_id SERIAL PRIMARY KEY,
@@ -49,6 +51,7 @@ async function createTables() {
       FOREIGN KEY (user_id) REFERENCES Users(user_id)
     );`;
 
+    // Prepare Statement to Create Transaction Table
     const createTransactions = `
     CREATE TABLE IF NOT EXISTS Transactions (
       transaction_id SERIAL PRIMARY KEY,
@@ -65,6 +68,7 @@ async function createTables() {
     );`;
 
   try {
+    // Execute Table creation queries
     await jdbc.ddl(createUsers);
     await jdbc.ddl(createBalances);
     await jdbc.ddl(createTransactions);
@@ -73,13 +77,15 @@ async function createTables() {
   }
 }
 
-// Functions to add rows
+// Functions to add rows --------------------------------------------------------------------------------------
+
 async function newUser(username, password) {
 
   const hashedPass = await bcrypt.hash(password, 10);
 
   const escapedUsername = username.replace(/'/g, "''");
 
+  // Prepare Statement to Insert New User
   const insertUser = `
     INSERT INTO 
       Users (username, password)
@@ -89,6 +95,7 @@ async function newUser(username, password) {
     ON CONFLICT (username) DO NOTHING;`;
 
   try {
+    // Execute Insertion Query
     const result = await jdbc.ddl(insertUser);
     return result;
   }
@@ -100,7 +107,8 @@ async function newUser(username, password) {
 async function newBalance(user_id, balance_name, balance_type, amount) {
 
   const escapedBalanceName = balance_name.replace(/'/g, "''");
-
+  
+  // Prepare Statement to Insert New Balance
   const insertBalance = `
     INSERT INTO Balances (
       user_id, 
@@ -114,7 +122,9 @@ async function newBalance(user_id, balance_name, balance_type, amount) {
       ${amount}
     )
     ON CONFLICT (balance_name) DO NOTHING;`;
+
   try {
+    //Execute Insertion Query
     const result = await jdbc.ddl(insertBalance);
     return result;
   }
@@ -151,6 +161,7 @@ if (!validTransactionTypes.includes(transaction_type)) {
 }
 
   const escapedTransactionName = transaction_name.replace(/'/g, "''");
+  // Prepare Statement to Insert Transaction
   const insertTransaction = `
       INSERT INTO Transactions (
           balance_id, 
@@ -171,6 +182,7 @@ if (!validTransactionTypes.includes(transaction_type)) {
   console.log("Executing query:", insertTransaction); // Debugging log
 
   try {
+      // Execute Insertion Statement
       const result = await jdbc.ddl(insertTransaction);
       if (result === 0) {
           throw new Error("Transaction name already exists");
@@ -184,9 +196,10 @@ if (!validTransactionTypes.includes(transaction_type)) {
 
 
 
-// Functions to Delete Rows
+// Functions to Delete Rows -----------------------------------------------------------------------------
 async function deleteTransaction(transaction_id) {
 
+  // Prepare Statement to delete transaction
   const removeTransaction = `
     DELETE FROM Transactions 
     WHERE transaction_id = ${transaction_id};
@@ -202,6 +215,7 @@ async function deleteTransaction(transaction_id) {
 
 // Function to get Transaction
 async function getTransaction(user_id) {
+  // Prepare Statement to Get Transactions
   const fetchTransactionsQuery = `
       SELECT transaction_id, balance_id, transaction_name, transaction_type, amount, transaction_date, transaction_time
       FROM Transactions
@@ -209,6 +223,7 @@ async function getTransaction(user_id) {
   `;
 
   try {
+      //Execute SELECT Query
       const result = await jdbc.sql(fetchTransactionsQuery);
       return result;
   } catch (error) {
@@ -216,10 +231,11 @@ async function getTransaction(user_id) {
       throw error;
   }
 }
+
+//Update Balances after transactions
 async function updateBalances(transaction_type, balance_id, balance_type, amount, to_balance_id = null) {
   try {
-      console.log("Backend Balance Type:", balance_type);
-      if (transaction_type === "spending") {
+      if (transaction_type === "spending") { //Different options based on whether balances should be increased or decreased
         if(balance_type === "credit"){
           await jdbc.ddl(`
             UPDATE Balances
@@ -274,6 +290,7 @@ async function updateBalances(transaction_type, balance_id, balance_type, amount
 // Balances Functions ====================================================================================
 async function deleteBalance(balance_id) {
 
+  //Removes Transactions that reference it
   const removeTransactions = `
     DELETE FROM Transactions
     WHERE balance_id = ${balance_id};
@@ -295,6 +312,7 @@ async function deleteBalance(balance_id) {
 
 async function deleteUser(user_id) {
 
+  //Delete Transactions and Balances that reference the user
   const removeTransactions = `
     DELETE FROM Transactions
     WHERE user_id = ${user_id};
@@ -321,10 +339,9 @@ async function deleteUser(user_id) {
 }
 
 // Access Functions
-// Proper Login with hashing is for later
 async function login(username, password) {
 
-  const escapedUsername = username.replace(/'/g, "''");
+  const escapedUsername = username.replace(/'/g, "''"); //Reformat String
 
   const pullPass = `
     SELECT password
@@ -335,12 +352,12 @@ async function login(username, password) {
   `;
 
   try {
-    const storedPass = await jdbc.sql(pullPass);
+    const storedPass = await jdbc.sql(pullPass); //Pull password for hashed comparison
     if (storedPass.length === 0 || storedPass.length > 1) {
       return -2; //Username not found...
     }
     else {
-      const verify = await bcrypt.compare(password, storedPass[0].password);
+      const verify = await bcrypt.compare(password, storedPass[0].password); //Compared hashed password
       if (verify) {
         console.log("Verified: ", verify);
         try {
@@ -356,13 +373,11 @@ async function login(username, password) {
           `;
 
           const result = await jdbc.sql(selectUser);
-          console.log("Stored Password: ", storedPass);
-          console.log("Hashed Search: ", result);
           if (result.length == 0 || result.length > 1) {
             return -2; //Username not found...
           }
           else {
-            return result[0].user_id;
+            return result[0].user_id; //If successful, return use_id
           }
         }
         catch (e) {
@@ -468,9 +483,7 @@ app.get('/api/getNames', async (req, res) => {
 app.get('/api/login', async (req, res) => {
   const username = req.query.username;
   const password = req.query.password;
-  console.log("Login Params: ", req.query);
   const ID = await login(username, password);
-  console.log(ID);
   res.json(ID);
 });
 app.get('/api/getTransactions', async (req, res) => {
@@ -496,10 +509,8 @@ app.post('/api/createTables', async (req, res) => {
 app.post('/api/setUser', async (req, res) => {
   const username = req.query.username;
   const password = req.query.password;
-  console.log("Parameters:",username,", ",password);
   try{
     const insertCode = await newUser(username, password);
-    console.log("Insert Code:", insertCode);
     if (insertCode === 1) {
       console.log("Signup Complete");
       res.sendStatus(204);
@@ -536,7 +547,6 @@ app.post('/api/insertBalance', async (req, res) => {
 
 app.post('/api/deleteTable', async (req, res) => {
   const balance_id = req.query.balance_id;
-  console.log(balance_id);
   await deleteBalance(balance_id);
   res.sendStatus(204);
 })
