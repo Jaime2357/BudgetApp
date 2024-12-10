@@ -1,6 +1,6 @@
 -- NOTE:
 -- This could be used to initialize the database with some sample data, 
--- but it is recommended to use the website itself as we Hash the password for security reasons.
+-- but it is recommended to use the website itself as we Hash the password for security reasons and direct insertion will result in passwords failing verification.
 
 -- Insert data into Users table
 INSERT INTO Users (user_id, username, password) VALUES
