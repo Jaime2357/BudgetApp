@@ -1,3 +1,7 @@
+-- NOTE:
+-- This could be used to initialize the database with some sample data, 
+-- but it is recommended to use the website itself as we Hash the password for security reasons.
+
 -- Insert data into Users table
 INSERT INTO Users (user_id, username, password) VALUES
 (1, 'user1', 'password123'),
@@ -51,3 +55,4 @@ INSERT INTO Transactions (transaction_id, user_id, balance_id, transaction_name,
 (13, 7, 11, 'Tuition Fees', 'spending', 400.00, '2024-01-13', '11:00:00'),
 (14, 8, 12, 'Car Service', 'spending', 250.00, '2024-01-14', '15:00:00'),
 (15, 9, 13, 'Insurances', 'spending', 200.00, '2024-01-15', '09:00:00');
+
